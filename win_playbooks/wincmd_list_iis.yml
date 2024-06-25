@@ -1,0 +1,10 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  tasks:
+  - name: command
+    win_shell: 'C:\Windows\System32\inetsrv\appcmd.exe list site'
+    register: result
+    ignore_errors: yes
+  - name: showing report
+    debug:
+     var: result

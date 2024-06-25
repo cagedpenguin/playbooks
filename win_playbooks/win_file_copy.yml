@@ -1,0 +1,10 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  gather_facts: no
+  tasks:
+  - name: Copy a single file where the source is on the remote host
+    fetch:
+      src: D:\Sites\Terminus\appsettings.json
+      dest: /tmp/web_conf
+      remote_src: yes
+      validate_checksum: false

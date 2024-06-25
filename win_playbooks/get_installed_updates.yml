@@ -1,0 +1,10 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  tasks:
+  - name: command
+    win_shell: "wmic qfe get hotfixid,installedon /format:csv"
+    register: result
+    ignore_errors: yes
+  - name: showing report
+    debug:
+     var: result

@@ -1,0 +1,22 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  serial: 1
+  tasks:
+  - name: Get info for all installed services
+    ansible.windows.win_service_info:
+    name: Amazon CloudWatch Agent
+    register: result
+  - name: copy result to file
+    local_action:
+      module: lineinfile
+      #line: "{{ result.stdout_lines }}"
+      line: "# {{ inventory_hostname }} - {{ result }}"
+      path: "/tmp/win_list_services-{{ inventory_hostname }}.log"
+      create: yes
+  - name: showing report
+    debug:
+     var: result
+  - name: pause 90 seconds
+    pause:
+      seconds: 90
+

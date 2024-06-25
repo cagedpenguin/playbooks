@@ -1,0 +1,34 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  serial: 1
+  tasks:
+  - name: Create datestamp
+    local_action:
+      module: shell
+      _raw_params: "date +%Y%m%d"
+    register: datestamp
+  - name: Check disk space on Windows
+    #win_shell: Get-Volume | Select-Object -Property DriveLetter, FileSystemLabel, FileSystem, Size, SizeRemaining | ConvertTo-Csv -NoTypeInformation
+    win_shell: Get-Volume | Select-Object -Property DriveLetter, Size, SizeRemaining | ConvertTo-Csv -NoTypeInformation
+    register: wds
+  - name: Copy result to file
+    local_action:
+      module: lineinfile
+      line: "Server: {{ inventory_hostname }}, Partition: {{ _key }}, Total: {{ _val|float|round(2,'floor') }}GB, Available: {{ _val2|float|round(2,'floor') }}GB"
+      path: "/tmp/disk_info.{{ datestamp.stdout }}.log"
+      create: yes
+    loop: "{{ wds.stdout_lines }}"
+    vars:
+      _arr: "{{ item.split(',') }}"
+      _key: "{{ _arr.0[1:-1] }}"
+      _val: "{{ _arr.1[1:-1] | int / 1024 / 1024 / 1024 }}"
+      _val2: "{{ _arr.2[1:-1] | int / 1024 / 1024 / 1024 }}"
+  - name: Print vars
+    debug:
+      msg: "Partition: {{ _key }}, Total: {{ _val|float|round(2,'floor') }}GB, Available: {{ _val2|float|round(2,'floor') }}GB"
+    loop: "{{ wds.stdout_lines }}"
+    vars:
+      _arr: "{{ item.split(',') }}"
+      _key: "{{ _arr.0[1:-1] }}"
+      _val: "{{ _arr.1[1:-1] | int / 1024 / 1024 / 1024 }}"
+      _val2: "{{ _arr.2[1:-1] | int / 1024 / 1024 / 1024 }}"

@@ -1,0 +1,6 @@
+#NOTES
+ansible-playbook -i inventory.ini playbook.yml -e var1="var1" -e var2="'var2 with extras'" --ask-vault-pass
+
+# Ansible allows you to encrypt your ini file so your password isn't just sitting out.
+ansible-vault encrypt example.ini
+ansible-vault decrypt example.ini

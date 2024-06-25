@@ -1,0 +1,26 @@
+- name: search only, check for updates if any.
+  hosts: "{{ hosts }}"
+  serial: 1
+  tasks:
+    - name: Create datestamp
+      local_action:
+        module: shell
+        _raw_params: "date +%Y%m%d"
+      register: datestamp
+    - name: Search-only, return list of found updates (if any)
+      win_updates:
+        # categories: 'SecurityUpdates','CriticalUpdates','UpdateRollups', 'Updates', 'DefinitionUpdates'
+        # category_names: ['SecurityUpdates','CriticalUpdates']
+        categories: ['SecurityUpdates','CriticalUpdates','UpdateRollups','Updates','DefinitionUpdates']
+        state: installed
+      ignore_errors: yes
+      register: result
+    - name: copy result to file
+      local_action:
+        module: lineinfile
+        line: "Date: {{ datestamp.stdout }} - Server: {{ inventory_hostname }} - Update Count: {{ result.found_update_count }} - Updates: {{ result.updates }}"
+        path: "/tmp/win_updates_{{ datestamp.stdout }}.log"
+        create: yes
+    - name: reboot host if required
+      win_reboot:
+      when: result.reboot_required

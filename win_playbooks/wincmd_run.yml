@@ -1,0 +1,17 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  tasks:
+  - name: command
+    win_shell: "{{ command }}"
+    register: result
+    ignore_errors: yes
+  - name: copy result to file
+    local_action:
+      module: lineinfile
+      #line: "{{ result.stdout_lines }}"
+      line: "# {{ inventory_hostname }} - {{ result.stdout_lines }}"
+      path: /tmp/wincmd_run.log
+      create: yes
+  - name: showing report
+    debug:
+     var: result

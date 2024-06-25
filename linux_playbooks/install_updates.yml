@@ -1,0 +1,31 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  gather_facts: true
+  #become: yes
+  #become_user: root
+
+  tasks:
+    - name: Create datestamp
+      local_action:
+        module: shell
+        _raw_params: "date +%Y%m%d"
+      register: datestamp
+
+    - name: Install updates
+      yum:
+        name: '*'
+        state: latest
+        exclude: nginx* lua* 
+      register: yum_output
+      become: true
+
+    - name: copy result to file
+      local_action:
+        module: lineinfile
+        line: "Date: {{ datestamp.stdout }} - Server: {{ inventory_hostname }} - Results: {{ yum_output.results }}"
+        path: "/tmp/patch_{{ inventory_hostname }}_{{ datestamp.stdout }}.log"
+        create: yes
+
+    - name: show that yum output
+      debug:
+        var: yum_output.results

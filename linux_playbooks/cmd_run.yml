@@ -1,0 +1,23 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  #become: yes
+  #become_user: root
+  tasks:
+  - name: Create datestamp
+    local_action:
+      module: shell
+      _raw_params: "date +%Y%m%d"
+    register: datestamp
+  - name: command
+    shell: "{{ command }}"
+    register: result
+    ignore_errors: yes
+  - name: copy result to file
+    local_action:
+      module: lineinfile
+      line: "Date: {{ datestamp.stdout }} - Server: {{ inventory_hostname }} - Cmd: {{ command }} - Result: {{ result.stdout_lines }}"
+      path: "/tmp/cmd_run_linux_{{ datestamp.stdout }}.log"
+      create: yes
+  - name: showing report
+    debug:
+     var: result

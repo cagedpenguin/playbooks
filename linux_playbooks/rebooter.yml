@@ -1,0 +1,26 @@
+- name: run commands
+  hosts: "{{ hosts }}"
+  serial: 1
+  #become: yes
+  #become_user: root
+  tasks:
+  - name: Create datestamp
+    local_action:
+      module: shell
+      _raw_params: "date +%Y%m%d"
+    register: datestamp
+
+  - name: command
+    shell: "reboot"
+    async: 1
+    poll: 0
+    register: result
+    ignore_errors: yes
+
+  - name: showing report
+    debug:
+     var: result
+
+  - name: pause 300 seconds
+    pause:
+      seconds: 300
